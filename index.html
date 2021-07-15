@@ -2,9 +2,13 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+        <!--Required links-->
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.9.55/css/materialdesignicons.min.css">
         <script src="./web-components/file-drop.js"></script>
+
+        <!--Handle data returned in 'event.detail'-->
         <script>
             function handleData(event) {
                 console.log(event.detail);
@@ -12,6 +16,9 @@
         </script>
     </head>
     <body>
+        <!--
+            size: [sm, lg, xl]
+        -->
         <file-drop
             style="width: 300px; height: 150px;"
             size="lg"
