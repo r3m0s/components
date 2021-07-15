@@ -25,10 +25,9 @@ class FileDrop extends HTMLElement {
         </div>
         `;
 
-        this.attachShadow({ mode: 'open' }).appendChild(fileDropTemplate.content);
+        this.attachShadow({mode: 'open'}).appendChild(fileDropTemplate.content);
 
         this._onCheckFn = null;
-
     }
 
     get placeholder() {
@@ -55,6 +54,14 @@ class FileDrop extends HTMLElement {
         this.setAttribute('accept', val);
     }
 
+    get size() {
+        return this.getAttribute('size');
+    }
+
+    set size(val) {
+        this.setAttribute('size', val);
+    }
+
     get onFileLoaded() {
         return this._onCheckFn;
     }
@@ -71,14 +78,9 @@ class FileDrop extends HTMLElement {
         }
     }
 
-    get size() {
-        return this.getAttribute('size');
-    }
-
-    set size(val) {
-        this.setAttribute('size', val);
-    }
-
+    /**
+     * Define attributes which should be observed by the web-component
+     */
     static get observedAttributes() {
         return ['placeholder', 'not-allowed-hint', 'accept', 'onfileloaded', 'size'];
     }
@@ -102,16 +104,9 @@ class FileDrop extends HTMLElement {
     render() {
         this.resetInput();
 
+        // Delete current file
         this.cancel.addEventListener('click', () => {
             this.resetInput();
-        });
-
-        this.fileInput.addEventListener('dragenter', (e) => {
-            this.icon.classList.add('zone__info__icon--scale');
-        });
-
-        this.fileInput.addEventListener('dragleave', (e) => {
-            this.icon.classList.remove('zone__info__icon--scale');
         });
 
         // Prevents default browser drop-behaviour to support Chrome
@@ -124,8 +119,20 @@ class FileDrop extends HTMLElement {
         this.fileInput.addEventListener('change', (e) => {
             this.uploadFile(e.target.files[0]);
         });
+
+        // Styles for dragenter/leave animations
+        this.fileInput.addEventListener('dragenter', (e) => {
+            this.icon.classList.add('zone__info__icon--scale');
+        });
+        this.fileInput.addEventListener('dragleave', (e) => {
+            this.icon.classList.remove('zone__info__icon--scale');
+        });
     }
 
+    /**
+     * Reads the file object's data and returns data through the onfileloaded event
+     * @param {Give file object} file 
+     */
     uploadFile(file) {
         this.dropzone.classList.remove('zone--allowed');
         
@@ -134,28 +141,39 @@ class FileDrop extends HTMLElement {
             return;
         }
 
+        // Read data from file
         var reader = new FileReader(file);
         reader.readAsText(file);
         reader.addEventListener('load', (e) => {
             this.fileExists = true;
+
+            // Update zone style-state
             this.fileInput.disabled = true;
             this.icon.classList.remove('mdi-file-plus-outline');
             this.icon.classList.add('mdi-file-check-outline');
             this.icon.classList.add('zone__info__icon--rotate');
-
             this.dropzone.classList.add('zone--uploaded');
             this.cancel.style.display = 'block';
             this.info.style.display = 'block';
-            this.hint.innerText = file.name;
-            const date = new Date(file.lastModified);
-            this.info.innerText = `Size: ${this.formatBytes(file.size)}\nModified: ${date.toLocaleString("de")}`
 
+            // Output information
+            const date = new Date(file.lastModified);
+            this.info.innerText = `Size: ${this.formatBytes(file.size)}\nModified: ${date.toLocaleString("de")}`;
+            this.hint.innerText = file.name;
+
+            // Emit data-event
             var fileLoadedEvent  = new CustomEvent('fileLoaded', {detail: e.target.result});
             this.dispatchEvent(fileLoadedEvent);
         });
     }
     
+    /**
+     * Called to initialize or when file was removed
+     */
     resetInput() {
+        this.fileExists = false;
+
+        // DOM-Elements
         this.dropzone = this.shadowRoot.getElementById('dropzone');
         this.cancel = this.shadowRoot.getElementById('cancel');
         this.icon = this.shadowRoot.getElementById('icon');
@@ -163,6 +181,7 @@ class FileDrop extends HTMLElement {
         this.info = this.shadowRoot.getElementById('info');
         this.fileInput = this.shadowRoot.getElementById('fileInput');
 
+        // Adjust icon-sizes
         switch (this.size) {
             default:
             case 'sm':
@@ -179,20 +198,19 @@ class FileDrop extends HTMLElement {
                 break;
         }
 
-        this.fileExists = false;
-        this.cancel.style.display = 'none';
-        this.info.style.display = 'none';
+        // Reset zone style-state
         this.fileInput.accept = this.accept;
-        this.fileInput.value = '';
         this.fileInput.disabled = false;
+        this.fileInput.value = '';
+        this.hint.innerText = this.placeholder;
         this.icon.classList.remove('mdi-file-check-outline');
         this.icon.classList.remove('mdi-file-cancel-outline');
         this.icon.classList.remove('zone__info__icon--rotate');
         this.icon.classList.remove('zone__info__icon--scale');
-        this.icon.classList.add('mdi-file-plus-outline');
-        this.hint.innerText = this.placeholder;
-    
         this.dropzone.classList.remove('zone--uploaded');
+        this.icon.classList.add('mdi-file-plus-outline');
+        this.cancel.style.display = 'none';
+        this.info.style.display = 'none';
     
         this.dropzone.addEventListener('dragover', () => {
             if (!this.fileExists) {
@@ -207,12 +225,16 @@ class FileDrop extends HTMLElement {
         });
     }
     
+    /**
+     * Called when input file-type is not allowed to show feedback to the user
+     */
     rejectInput() {
-        this.hint.innerText = this.notAllowedHint;
         this.icon.classList.remove('mdi-file-plus-outline');
         this.icon.classList.add('mdi-file-cancel-outline');
         this.icon.classList.add('zone__info__icon--shake');
         this.dropzone.classList.add('zone--reject');
+        this.hint.innerText = this.notAllowedHint;
+
         setTimeout(() => {
             this.dropzone.classList.remove('zone--reject');
             this.icon.classList.remove('zone__info__icon--shake');
@@ -240,4 +262,5 @@ class FileDrop extends HTMLElement {
 
 }
 
+// Defines the file-drop web-component for reuse
 customElements.define('file-drop', FileDrop);
