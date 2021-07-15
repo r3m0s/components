@@ -1,4 +1,5 @@
 .zone {
+    transition: 0.5s;
     width: inherit;
     height: inherit;
     cursor: pointer;
