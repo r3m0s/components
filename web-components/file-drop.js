@@ -106,35 +106,52 @@ class FileDrop extends HTMLElement {
             this.resetInput();
         });
 
+        this.fileInput.addEventListener('dragenter', (e) => {
+            this.icon.classList.add('zone__info__icon--scale');
+        });
+
+        this.fileInput.addEventListener('dragleave', (e) => {
+            this.icon.classList.remove('zone__info__icon--scale');
+        });
+
+        // Prevents default browser drop-behaviour to support Chrome
+        this.fileInput.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.uploadFile(e.dataTransfer.files[0]);
+        });
+
+        // Support file-dialog for file-input aswell
         this.fileInput.addEventListener('change', (e) => {
-            var file = e.target.files[0];
+            this.uploadFile(e.target.files[0]);
+        });
+    }
 
-            this.dropzone.classList.remove('zone--allowed');
-            
-            if (!this.accept.includes(file.type)) {
-                this.rejectInput();
-                return;
-            }
+    uploadFile(file) {
+        this.dropzone.classList.remove('zone--allowed');
+        
+        if (!this.accept.includes(file.type)) {
+            this.rejectInput();
+            return;
+        }
 
-            var reader = new FileReader(file);
-            reader.readAsText(file);
-            reader.addEventListener('load', (e) => {
-                this.fileExists = true;
-                this.fileInput.disabled = true;
-                this.icon.classList.remove('mdi-file-plus-outline');
-                this.icon.classList.add('mdi-file-check-outline');
-                this.icon.classList.add('zone__info__icon--rotate');
+        var reader = new FileReader(file);
+        reader.readAsText(file);
+        reader.addEventListener('load', (e) => {
+            this.fileExists = true;
+            this.fileInput.disabled = true;
+            this.icon.classList.remove('mdi-file-plus-outline');
+            this.icon.classList.add('mdi-file-check-outline');
+            this.icon.classList.add('zone__info__icon--rotate');
 
-                this.dropzone.classList.add('zone--uploaded');
-                this.cancel.style.display = 'block';
-                this.info.style.display = 'block';
-                this.hint.innerText = file.name;
-                const date = new Date(file.lastModified);
-                this.info.innerText = `Size: ${this.formatBytes(file.size)}\nModified: ${date.toLocaleString("de")}`
+            this.dropzone.classList.add('zone--uploaded');
+            this.cancel.style.display = 'block';
+            this.info.style.display = 'block';
+            this.hint.innerText = file.name;
+            const date = new Date(file.lastModified);
+            this.info.innerText = `Size: ${this.formatBytes(file.size)}\nModified: ${date.toLocaleString("de")}`
 
-                var fileLoadedEvent  = new CustomEvent('fileLoaded', {bubbles: true, cancelable: true, detail: e.target.result});
-                this.dispatchEvent(fileLoadedEvent);
-            });
+            var fileLoadedEvent  = new CustomEvent('fileLoaded', {detail: e.target.result});
+            this.dispatchEvent(fileLoadedEvent);
         });
     }
     
@@ -171,6 +188,7 @@ class FileDrop extends HTMLElement {
         this.icon.classList.remove('mdi-file-check-outline');
         this.icon.classList.remove('mdi-file-cancel-outline');
         this.icon.classList.remove('zone__info__icon--rotate');
+        this.icon.classList.remove('zone__info__icon--scale');
         this.icon.classList.add('mdi-file-plus-outline');
         this.hint.innerText = this.placeholder;
     

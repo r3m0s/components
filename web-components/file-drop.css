@@ -6,6 +6,7 @@
     background-color: #00659413;
     color: #006494;
     border: 3px dashed #006494;
+    box-shadow: 0 4px 8px 0 #0065940a, 0 6px 20px 0 #0064940a;
     border-radius: 12px;
     -webkit-border-radius: 12px;
     -moz-border-radius: 12px;
@@ -53,6 +54,10 @@
     align-items: center;
 }
 
+.zone__info__icon--scale {
+    animation: scale 0.75s infinite linear;
+}
+
 .zone__info__icon--rotate {
     animation-iteration-count: 1;
     animation: rotate 0.5s normal forwards ease-in-out;
@@ -85,12 +90,14 @@
     background-color: #6ca34d65;
     border-color: #6DA34D;
     color: #58853e;
+    box-shadow: 0 4px 8px 0 #58853e0a, 0 6px 20px 0 #58853e0a;
 }
 
 .zone--reject {
     background-color: #EF233C65;
     color: #EF233C;
     border-color: #EF233C;
+    box-shadow: 0 4px 8px 0 #EF233C0a, 0 6px 20px 0 #EF233C0a;
 }
 
 .zone--uploaded {
@@ -101,6 +108,14 @@
     -moz-background-clip: border;
     -webkit-background-clip: border;
     background-clip: border-box;
+    box-shadow: 0 4px 8px 0 #6ca34d50, 0 6px 20px 0 #6ca34d50;
+}
+
+@keyframes scale {
+    0% { transform: scale(1); }
+    25% { transform: scale(0.9); }
+    75% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 @keyframes rotate {
