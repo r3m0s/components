@@ -5,11 +5,12 @@ var icon;
 var hint;
 var info;
 var fileInput;
-var _onCheckFn;
+var onFileLoadedFn = null;
 
 class FileDrop extends HTMLElement {
     constructor() {
         super();
+        
         const fileDropTemplate = document.createElement('template');
         fileDropTemplate.innerHTML = `
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.9.55/css/materialdesignicons.min.css">
@@ -26,8 +27,6 @@ class FileDrop extends HTMLElement {
         `;
 
         this.attachShadow({mode: 'open'}).appendChild(fileDropTemplate.content);
-
-        this._onCheckFn = null;
     }
 
     get placeholder() {
@@ -63,18 +62,18 @@ class FileDrop extends HTMLElement {
     }
 
     get onFileLoaded() {
-        return this._onCheckFn;
+        return this.onFileLoadedFn;
     }
 
     set onFileLoaded(handler) {
-        if (this._onCheckFn) {
-          this.removeEventListener('fileLoaded', this._onCheckFn);
-          this._onCheckFn = null;
+        if (this.onFileLoadedFn) {
+          this.removeEventListener('fileLoaded', this.onFileLoadedFn);
+          this.onFileLoadedFn = null;
         }
 
         if (typeof handler === 'function') {
-          this._onCheckFn = handler;
-          this.addEventListener('fileLoaded', this._onCheckFn);
+          this.onFileLoadedFn = handler;
+          this.addEventListener('fileLoaded', this.onFileLoadedFn);
         }
     }
 
@@ -136,7 +135,7 @@ class FileDrop extends HTMLElement {
     uploadFile(file) {
         this.dropzone.classList.remove('zone--allowed');
         
-        if (!this.accept.includes(file.type)) {
+        if (!this.accept.includes(file.type) || file.type === "") {
             this.rejectInput();
             return;
         }

@@ -1,13 +1,15 @@
 .zone {
-    transition: 0.5s;
+    transition: 0.3s;
     width: inherit;
     height: inherit;
     cursor: pointer;
     position: relative;
-    background-color: #00659413;
-    color: #006494;
-    border: 3px dashed #006494;
-    box-shadow: 0 4px 8px 0 #0065940a, 0 6px 20px 0 #0064940a;
+    background: linear-gradient(133deg, #00ABAA1C, #0065941C);
+    background-size: 400% 400%;
+    animation: gradient 3s ease infinite;
+    color: #006594;
+    border: 3px dashed #006594;
+    box-shadow: 0 4px 8px 0 #0065940a, 0 6px 20px 0 #0065940a;
     border-radius: 12px;
     -webkit-border-radius: 12px;
     -moz-border-radius: 12px;
@@ -16,9 +18,11 @@
     background-clip: padding-box;
     font-family: 'Roboto', serif;
     font-size: 18px;
+    overflow: hidden;
 }
 
 .zone__cancel {
+    cursor: pointer;
     position: absolute;
     top: 0;
     right: 0;
@@ -26,8 +30,8 @@
 
 .zone__cancel:hover {
     transition: 250ms;
-    transform-origin: center;
-    transform: scale(0.8);
+    background: #ffffff33;
+    border-bottom-left-radius: 8px;
 }
 
 .zone__input {
@@ -83,33 +87,40 @@
     margin: 0;
     padding: 4px;
     border-radius: 2px;
-    background-color: #58853e;
+    background-color: #00000015;
     font-size: 12px;
 }
 
 .zone--allowed {
-    background-color: #6ca34d65;
-    border-color: #6DA34D;
-    color: #58853e;
-    box-shadow: 0 4px 8px 0 #58853e0a, 0 6px 20px 0 #58853e0a;
+    background: linear-gradient(133deg, #6DA34D65, #63D77165);
+    color: #6DA34D;
+    border: 3px dashed #6DA34D;
+    box-shadow: 0 4px 8px 0 #6DA34D0A, 0 6px 20px 0 #6DA34D0A;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding;
+    background-clip: padding-box;
 }
 
 .zone--reject {
-    background-color: #EF233C65;
+    background: linear-gradient(133deg, #EF233C65, #EF232365);
     color: #EF233C;
-    border-color: #EF233C;
+    border: 3px dashed #EF233C;
     box-shadow: 0 4px 8px 0 #EF233C0a, 0 6px 20px 0 #EF233C0a;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding;
+    background-clip: padding-box;
 }
 
 .zone--uploaded {
     background-color: #6DA34D;
+    cursor: default;
     color: #FFFFFF;
-    border-color: #58853e;
+    border-color: #00000015;
     border-style: solid;
     -moz-background-clip: border;
     -webkit-background-clip: border;
     background-clip: border-box;
-    box-shadow: 0 4px 8px 0 #6ca34d50, 0 6px 20px 0 #6ca34d50;
+    box-shadow: 0 4px 8px 0 #70A84F50, 0 6px 20px 0 #70A84F50;
 }
 
 @keyframes scale {
@@ -139,4 +150,10 @@
     40%, 60% {
         transform: translate(4px, 0);
     }
+}
+
+@keyframes gradient {
+    0%{ background-position: 0% 50%; }
+    50%{ background-position: 100% 50%; }
+    100%{ background-position: 0% 50%; }
 }
