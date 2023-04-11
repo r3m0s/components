@@ -1,3 +1,5 @@
+// Selfmade custom webcomponent for file upload, see https://github.com/r3m0s/components
+
 var fileExists;
 var dropzone;
 var cancel;
@@ -6,6 +8,8 @@ var hint;
 var info;
 var fileInput;
 var onFileLoadedFn = null;
+var form;
+abortController = new AbortController();
 
 class FileDrop extends HTMLElement {
     constructor() {
@@ -21,12 +25,13 @@ class FileDrop extends HTMLElement {
                 <h1 id="hint" class="zone__info__hint"></h1>
                 <p id="info" class="zone__info__meta"></p>
             </div>
-            <input id="fileInput" class="zone__input" type="file"/>
+            <input id="fileInput" class="zone__input" type="file" multiple/>
             <div id="cancel" class="zone__cancel mdi mdi-close"></div>
         </div>
         `;
 
         this.attachShadow({mode: 'open'}).appendChild(fileDropTemplate.content);
+        form = document.querySelector('form');
     }
 
     get placeholder() {
@@ -111,12 +116,14 @@ class FileDrop extends HTMLElement {
         // Prevents default browser drop-behaviour to support Chrome
         this.fileInput.addEventListener('drop', (e) => {
             e.preventDefault();
-            this.uploadFile(e.dataTransfer.files[0]);
+            this.uploadFile(e.dataTransfer.files);
+            this.dispatchEvent(new CustomEvent('change', {detail: e.dataTransfer.files}));
         });
 
         // Support file-dialog for file-input aswell
         this.fileInput.addEventListener('change', (e) => {
-            this.uploadFile(e.target.files[0]);
+            this.uploadFile(e.target.files);
+            this.dispatchEvent(new CustomEvent('change', {detail: e.target.files}));
         });
 
         // Styles for dragenter/leave animations
@@ -130,40 +137,53 @@ class FileDrop extends HTMLElement {
 
     /**
      * Reads the file object's data and returns data through the onfileloaded event
-     * @param {Give file object} file 
+     * @param {Give file object} files
      */
-    uploadFile(file) {
+    uploadFile(files) {
         this.dropzone.classList.remove('zone--allowed');
-        
-        if (!this.accept.includes(file.type) || file.type === "") {
-            this.rejectInput();
-            return;
+        this.info.innerText = '';
+        this.hint.innerText = '';
+        // Controls event handling for formdata for external form submit
+        abortController = new AbortController();
+
+        for (const file of files) {
+            if (!this.accept.includes(file.type) || file.type === "") {
+                this.rejectInput();
+                return;
+            }
+    
+                // Read data from file
+            var reader = new FileReader(file);
+            reader.readAsText(file);
+            reader.addEventListener('load', (fileContent) => {
+                this.fileExists = true;
+    
+                // Update zone style-state
+                this.fileInput.disabled = true;
+                this.icon.classList.remove('mdi-file-plus-outline');
+                this.icon.classList.add('mdi-file-check-outline');
+                this.icon.classList.add('zone__info__icon--rotate');
+                this.dropzone.classList.add('zone--uploaded');
+                this.cancel.style.display = 'block';
+                this.info.style.display = 'block';
+    
+                // Output information
+                const date = new Date(file.lastModified);
+                this.info.innerText += `Size: ${this.formatBytes(file.size)}\nModified: ${date.toLocaleString("de")}\n`;
+                this.hint.innerHTML += file.name + '  ';
+    
+                // Emit data-event
+                var fileLoadedEvent  = new CustomEvent('fileLoaded', {detail: fileContent.target.result});
+                this.dispatchEvent(fileLoadedEvent);
+    
+                // Set File content variable for outer form submits
+                form.addEventListener('formdata', ({formData}) => {
+                    formData.append('file[]', file, file.name);
+                },
+                { signal: abortController.signal }
+                );
+            });
         }
-
-        // Read data from file
-        var reader = new FileReader(file);
-        reader.readAsText(file);
-        reader.addEventListener('load', (e) => {
-            this.fileExists = true;
-
-            // Update zone style-state
-            this.fileInput.disabled = true;
-            this.icon.classList.remove('mdi-file-plus-outline');
-            this.icon.classList.add('mdi-file-check-outline');
-            this.icon.classList.add('zone__info__icon--rotate');
-            this.dropzone.classList.add('zone--uploaded');
-            this.cancel.style.display = 'block';
-            this.info.style.display = 'block';
-
-            // Output information
-            const date = new Date(file.lastModified);
-            this.info.innerText = `Size: ${this.formatBytes(file.size)}\nModified: ${date.toLocaleString("de")}`;
-            this.hint.innerText = file.name;
-
-            // Emit data-event
-            var fileLoadedEvent  = new CustomEvent('fileLoaded', {detail: e.target.result});
-            this.dispatchEvent(fileLoadedEvent);
-        });
     }
     
     /**
@@ -222,6 +242,9 @@ class FileDrop extends HTMLElement {
                 this.dropzone.classList.remove('zone--allowed');
             }
         });
+
+        // Remove external form submit files
+        abortController.abort();
     }
     
     /**
